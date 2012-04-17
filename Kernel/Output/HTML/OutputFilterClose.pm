@@ -37,6 +37,8 @@ sub new {
         $Self->{$Object} = $Param{$Object} || die "Got no $Object!";
     }
 
+    $Self->{UserID} = $Param{UserID};
+
     if ( $Param{EncodeObject} ) {
         $Self->{EncodeObject} = $Param{EncodeObject};
     }
@@ -75,6 +77,27 @@ sub Run {
 
     if ( $Templatename  =~ m{AgentTicketZoom\z} ) {
         my ($TicketID) = ${$Param{Data}} =~ m{<ul \s+ class="Actions" .*? TicketID=(\d+)}xms;
+        
+        return 1 if !$TicketID;
+        
+        my $ActionConfig       = $Self->{ConfigObject}->Get( 'Ticket::Frontend::AgentTicketClose' ) || {};
+        my $RequiredPermission = $ActionConfig->{Permission} || 'close';
+        
+        my $Access = $Self->{TicketObject}->TicketPermission(
+            Type     => $RequiredPermission,
+            TicketID => $TicketID,
+            UserID   => $Self->{UserID},
+        );
+        
+        return 1 if !$Access;
+        
+        my %Ticket = $Self->{TicketObject}->TicketGet(
+            TicketID => $TicketID,
+            UserID   => $Self->{UserID},
+        );
+        
+        return 1 if $Ticket{OwnerID} != $Self->{UserID} && $Ticket{Lock} eq 'lock';
+        
         my $FormID     = $Self->{UploadCacheObject}->FormIDCreate();
 
         my %List   = $Self->{QuickCloseObject}->QuickCloseList( Valid => 1 );

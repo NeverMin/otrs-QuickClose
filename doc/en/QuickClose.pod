@@ -30,6 +30,11 @@ did not receive this file, see L<http://www.gnu.org/licenses/agpl.txt>.
 
 =over 4
 
+=item * 0.0.8
+
+  + Do not show the QuickClose dropdown in AgentTicketZoom when agent has no permission
+    to close the ticket.
+
 =item * 0.0.7
 
   + Under some circumstances the ticket id wasn't detected correctly (happened with parent-child-tickets).
